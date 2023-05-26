@@ -1,0 +1,32 @@
+# .gitignore for Django projects created in PyCharm
+
+# Virtual environment
+venv/
+__pycache__/
+
+# Django specific
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+
+# PyCharm specific
+.idea/
+*.iml
+
+# macOS specific
+.DS_Store
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+
+# Python specific
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+*.egg

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+    <style>
+        body, html {
+            height: 100%;
+        }
+
+        .messages-box {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .messages-list {
+            padding-left: 0;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            list-style: none;
+        }
+
+        .message-text {
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+        }
+
+        .received {
+            background-color: #f1f0f0;
+            align-self: flex-start;
+        }
+
+        .message-form {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .message-input {
+            flex: 1;
+            border-radius: 0;
+            border-right: none;
+        }
+
+        .btn-send {
+            border-radius: 0;
+        }
+
+        .chat-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="chat-container">
+        <div class="card flex-grow-1">
+            <div class="card-header bg-primary text-white row">
+                <div class="col-md-6 text-left">
+                    聊天机器人
+                </div>
+                <div class="col-md-6 text-right">
+                    {% if user.is_authenticated %}
+                       <b>欢迎, {{ user.username }}</b> <a style="color: yellow;" href="logout">退出</a>
+                    {% else %}
+                        <a style="color: yellow" href="login">登录</a> <a style="color: yellow;" href="register">注册</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body messages-box">
+
+                <ul class="list-unstyled messages-list">
+                    {% for msg in history %}
+                        {% if msg.user == request.user %}
+                            <li class="message sent">
+                                <div class="message-text">
+                                    <div class="message-sender">
+                                        <b>你：</b>
+                                    </div>
+                                    <div class="message-content">
+                                        {{ msg.message }}
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="message received">
+                                <div class="message-text">
+                                    <div class="message-sender">
+                                        <b>聊天机器人：</b>
+                                    </div>
+                                    <div class="message-content">
+                                        {{ msg.response }}
+                                    </div>
+                                </div>
+                            </li>
+
+                        {% endif %}
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+            <br><br>
+            <br><br>
+            <br><br>
+        </div>
+        <form class="message-form">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" class="form-control message-input" placeholder="请输入你想问的问题...">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary btn-send">发送</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const messagesList = $('.messages-list');
+        const messageForm = $('.message-form');
+        const messageInput = $('.message-input');
+
+        messageForm.on('submit', function (event) {
+            event.preventDefault();
+
+            const message = messageInput.val().trim();
+            if (message.length === 0) {
+                return;
+            }
+            const messageItem = $('<li></li>').addClass('message sent').html(`
+            <div class="message-text">
+                <div class="message-sender">
+                    <b>你：</b>
+                </div>
+                <div class="message-content">
+                    ${message}
+                </div>
+            </div>`);
+            messagesList.append(messageItem);
+
+            messageInput.val('');
+            $.ajax({
+                url: '',
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                data: {
+                    'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val(),
+                    'message': message
+                },
+                success: function (data) {
+                    const response = data.response;
+                    const messageItem = $('<li></li>').addClass('message received').html(`
+                    <div class="message-text">
+                        <div class="message-sender">
+                          <b>聊天机器人：</b>
+                        </div>
+                        <div class="message-content">
+                            ${response}
+                        </div>
+                    </div>`);
+                    messagesList.append(messageItem);
+                }
+            });
+        });
+
+
+    </script>
+{% endblock %}
